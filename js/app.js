@@ -595,6 +595,11 @@ function resetBatch() {
 
 // ===== Event Listeners =====
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded');
+    console.log('Single mode element:', document.getElementById('single-mode'));
+    console.log('Batch mode element:', document.getElementById('batch-mode'));
+    console.log('Batch drop zone:', document.querySelector('.batch-drop-zone'));
+
     // Initialize Web Worker for batch processing
     // Note: Worker is optional - current browser APIs are already async
     // Uncomment below to enable worker-based processing for very large batches
@@ -604,6 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.mode;
+            console.log('Switching to mode:', mode);
             state.mode = mode;
 
             // Update active button
@@ -613,8 +619,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Switch mode
             document.querySelectorAll('.mode-container').forEach(container => {
                 container.classList.remove('active');
+                console.log('Removed active from:', container.id);
             });
-            document.getElementById(`${mode}-mode`).classList.add('active');
+
+            const targetMode = document.getElementById(`${mode}-mode`);
+            if (targetMode) {
+                targetMode.classList.add('active');
+                console.log('Added active to:', `${mode}-mode`);
+            } else {
+                console.error('Could not find element:', `${mode}-mode`);
+            }
         });
     });
 
