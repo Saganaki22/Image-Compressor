@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Squoosh - Advanced image compression in your browser">
+    <title>Squoosh - Image Compression</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-background"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                    <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>Squoosh</h1>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-mode="single">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" fill="none" stroke-width="2"/>
+                    </svg>
+                    Single Image
+                </button>
+                <button class="nav-btn" data-mode="batch">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <rect x="2" y="5" width="10" height="10" rx="1" stroke="currentColor" fill="none" stroke-width="2"/>
+                        <rect x="8" y="2" width="10" height="10" rx="1" stroke="currentColor" fill="none" stroke-width="2"/>
+                    </svg>
+                    Batch Convert
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Single Image Mode -->
+        <div id="single-mode" class="mode-container active">
+            <!-- Drop Zone -->
+            <div id="drop-zone" class="drop-zone">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="38" stroke="url(#gradient2)" stroke-width="4" stroke-dasharray="8 8"/>
+                    <path d="M40 20V60M20 40H60" stroke="url(#gradient2)" stroke-width="4" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="gradient2" x1="0" y1="0" x2="80" y2="80">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h2>Drop an image here</h2>
+                <p>or click to select</p>
+                <input type="file" id="file-input" accept="image/*" hidden>
+            </div>
+
+            <!-- Comparison View -->
+            <div id="comparison-view" class="comparison-view hidden">
+                <!-- Controls -->
+                <div class="comparison-controls">
+                    <button id="reset-btn" class="control-btn">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M4 10a6 6 0 1 1 9 5.197" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M4 10l-2-2m2 2l2-2" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Reset
+                    </button>
+                    <button id="download-btn" class="control-btn primary">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 3v10m0 0l4-4m-4 4l-4-4M3 17h14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+
+                <!-- Image Comparison Slider -->
+                <div class="comparison-container">
+                    <div class="image-panel">
+                        <div class="panel-label">Original</div>
+                        <canvas id="original-canvas" class="image-canvas"></canvas>
+                        <div class="image-info">
+                            <span id="original-size">0 KB</span>
+                            <span id="original-dimensions">0 × 0</span>
+                        </div>
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-wrapper">
+                            <canvas id="comparison-canvas" class="comparison-canvas"></canvas>
+                            <div id="slider-divider" class="slider-divider">
+                                <div class="slider-handle">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <circle cx="12" cy="12" r="10" fill="white"/>
+                                        <path d="M8 12h8M10 9l-3 3 3 3M14 9l3 3-3 3" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="image-panel">
+                        <div class="panel-label">Compressed</div>
+                        <canvas id="compressed-canvas" class="image-canvas"></canvas>
+                        <div class="image-info">
+                            <span id="compressed-size">0 KB</span>
+                            <span id="compressed-dimensions">0 × 0</span>
+                            <span id="compression-ratio" class="ratio">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="settings-panel">
+                    <div class="settings-section">
+                        <h3>Preprocessing</h3>
+                        <div class="setting-group">
+                            <label>Rotate</label>
+                            <div class="rotate-buttons">
+                                <button class="icon-btn" data-rotate="0" title="0°">
+                                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" data-rotate="90" title="90°">
+                                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="5" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" data-rotate="180" title="180°">
+                                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" data-rotate="270" title="270°">
+                                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="10" y="5" width="5" height="10" fill="currentColor"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Resize</h3>
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="resize-enabled">
+                                Enable Resize
+                            </label>
+                        </div>
+                        <div id="resize-options" class="resize-options hidden">
+                            <div class="setting-row">
+                                <label>Width</label>
+                                <input type="number" id="resize-width" min="1" placeholder="Auto">
+                            </div>
+                            <div class="setting-row">
+                                <label>Height</label>
+                                <input type="number" id="resize-height" min="1" placeholder="Auto">
+                            </div>
+                            <div class="setting-row">
+                                <label>Method</label>
+                                <select id="resize-method">
+                                    <option value="high">High Quality</option>
+                                    <option value="medium">Medium Quality</option>
+                                    <option value="low">Low Quality</option>
+                                    <option value="pixelated">Pixelated</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <label>
+                                    <input type="checkbox" id="resize-maintain-aspect" checked>
+                                    Maintain Aspect Ratio
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Encoder</h3>
+                        <div class="setting-group">
+                            <label>Format</label>
+                            <select id="encoder-format">
+                                <option value="jpeg">JPEG (MozJPEG)</option>
+                                <option value="png">PNG (Browser)</option>
+                                <option value="webp">WebP</option>
+                                <option value="avif">AVIF</option>
+                            </select>
+                        </div>
+
+                        <!-- JPEG Options -->
+                        <div id="jpeg-options" class="encoder-options">
+                            <div class="setting-row">
+                                <label>Quality <span id="jpeg-quality-value">75</span></label>
+                                <input type="range" id="jpeg-quality" min="0" max="100" value="75">
+                            </div>
+                            <div class="setting-row">
+                                <label>
+                                    <input type="checkbox" id="jpeg-progressive" checked>
+                                    Progressive
+                                </label>
+                            </div>
+                            <div class="setting-row">
+                                <label>
+                                    <input type="checkbox" id="jpeg-optimize">
+                                    Optimize Coding
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- PNG Options -->
+                        <div id="png-options" class="encoder-options hidden">
+                            <div class="setting-row">
+                                <label>Quality <span id="png-quality-value">100</span></label>
+                                <input type="range" id="png-quality" min="0" max="100" value="100">
+                            </div>
+                        </div>
+
+                        <!-- WebP Options -->
+                        <div id="webp-options" class="encoder-options hidden">
+                            <div class="setting-row">
+                                <label>Quality <span id="webp-quality-value">75</span></label>
+                                <input type="range" id="webp-quality" min="0" max="100" value="75">
+                            </div>
+                            <div class="setting-row">
+                                <label>
+                                    <input type="checkbox" id="webp-lossless">
+                                    Lossless
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- AVIF Options -->
+                        <div id="avif-options" class="encoder-options hidden">
+                            <div class="setting-row">
+                                <label>Quality <span id="avif-quality-value">50</span></label>
+                                <input type="range" id="avif-quality" min="0" max="100" value="50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Mode -->
+        <div id="batch-mode" class="mode-container hidden">
+            <div class="batch-container">
+                <div class="batch-drop-zone">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <rect x="10" y="20" width="35" height="35" rx="4" stroke="url(#gradient3)" stroke-width="3" fill="none"/>
+                        <rect x="25" y="10" width="35" height="35" rx="4" stroke="url(#gradient3)" stroke-width="3" fill="none"/>
+                        <rect x="35" y="25" width="35" height="35" rx="4" stroke="url(#gradient3)" stroke-width="3" fill="none"/>
+                        <defs>
+                            <linearGradient id="gradient3" x1="0" y1="0" x2="80" y2="80">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h2>Drop multiple images or a folder</h2>
+                    <p>All processing happens locally in your browser</p>
+                    <div class="batch-buttons">
+                        <button id="select-files-btn" class="btn-primary">Select Files</button>
+                        <button id="select-folder-btn" class="btn-secondary">Select Folder</button>
+                    </div>
+                    <input type="file" id="batch-file-input" accept="image/*" multiple hidden>
+                    <input type="file" id="batch-folder-input" webkitdirectory directory multiple hidden>
+                </div>
+
+                <!-- Batch Settings -->
+                <div id="batch-settings" class="batch-settings hidden">
+                    <h3>Batch Conversion Settings</h3>
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <label>Output Format</label>
+                            <select id="batch-format">
+                                <option value="jpeg">JPEG (MozJPEG)</option>
+                                <option value="png">PNG</option>
+                                <option value="webp" selected>WebP</option>
+                                <option value="avif">AVIF</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>Quality <span id="batch-quality-value">80</span></label>
+                            <input type="range" id="batch-quality" min="0" max="100" value="80">
+                        </div>
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="batch-resize">
+                                Resize Images
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label>Max Width</label>
+                            <input type="number" id="batch-max-width" min="1" placeholder="Original" disabled>
+                        </div>
+                    </div>
+                    <button id="start-batch-btn" class="btn-primary large">Start Batch Conversion</button>
+                </div>
+
+                <!-- Batch Progress -->
+                <div id="batch-progress" class="batch-progress hidden">
+                    <div class="progress-header">
+                        <h3>Converting Images</h3>
+                        <span id="progress-count">0 / 0</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <div id="progress-details" class="progress-details">
+                        <div class="progress-stat">
+                            <span class="stat-label">Current:</span>
+                            <span id="current-file">-</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="stat-label">Total Size:</span>
+                            <span id="total-original-size">0 KB</span>
+                            <span class="arrow">→</span>
+                            <span id="total-compressed-size">0 KB</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="stat-label">Saved:</span>
+                            <span id="total-saved" class="highlight">0 KB (0%)</span>
+                        </div>
+                    </div>
+                    <button id="download-all-btn" class="btn-primary large hidden">Download All as ZIP</button>
+                    <button id="reset-batch-btn" class="btn-secondary">Start New Batch</button>
+                </div>
+
+                <!-- File List -->
+                <div id="batch-file-list" class="batch-file-list hidden">
+                    <h3>Selected Files (<span id="file-count">0</span>)</h3>
+                    <div id="file-list-container" class="file-list-container"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens locally. Your images never leave your device.</p>
+            <div class="footer-links">
+                <a href="https://github.com/GoogleChromeLabs/squoosh" target="_blank">Original Squoosh</a>
+                <span>•</span>
+                <a href="https://github.com/Saganaki22/Image-Compressor" target="_blank" class="github-link">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JSZip Library for creating ZIP archives -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
