@@ -1,6 +1,6 @@
-# Squoosh HTML - Modern Image Compression
+# Modern Lightweight Image Compression
 
-A sleek, modern HTML/CSS/JS reimagining of the Squoosh image compression app with ultra-modern UI, dark theme, and advanced features.
+A sleek, modern HTML/CSS/JS reimagining of the Squoosh image compressor with ultra-modern UI, dark theme, and advanced features.
 
 ## Features
 
