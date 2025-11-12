@@ -144,26 +144,28 @@ function resizeImage(img, settings) {
 }
 
 async function processImage(img, settings) {
-    let canvas = document.createElement('canvas');
-    let ctx = canvas.getContext('2d');
+    let currentCanvas = document.createElement('canvas');
+    let currentSource = img;
 
     // Apply rotation
     if (settings.rotate && settings.rotate !== 0) {
-        canvas = rotateImage(img, settings.rotate);
-        img = canvas;
+        currentCanvas = rotateImage(currentSource, settings.rotate);
+        currentSource = currentCanvas;
     }
 
     // Apply resize
     if (settings.resize.enabled && (settings.resize.width || settings.resize.height)) {
-        canvas = resizeImage(img, settings.resize);
-    } else {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx = canvas.getContext('2d');
+        currentCanvas = resizeImage(currentSource, settings.resize);
+    } else if (!settings.rotate || settings.rotate === 0) {
+        // No rotation and no resize - just copy the image
+        currentCanvas.width = img.width;
+        currentCanvas.height = img.height;
+        const ctx = currentCanvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
     }
+    // If rotated but not resized, currentCanvas already has the rotated image
 
-    return canvas;
+    return currentCanvas;
 }
 
 async function encodeImage(canvas, settings) {
@@ -347,19 +349,36 @@ async function compressImage() {
         document.getElementById('compressed-dimensions').textContent = `${compressedImg.width} × ${compressedImg.height}`;
         document.getElementById('compression-ratio').textContent = `${ratio}% smaller`;
 
-        // Setup comparison slider
+        // Setup comparison slider - maintain aspect ratio
         const comparisonCanvas = document.getElementById('comparison-canvas');
-        comparisonCanvas.width = Math.max(state.originalImage.width, compressedImg.width);
-        comparisonCanvas.height = Math.max(state.originalImage.height, compressedImg.height);
+
+        // Use the compressed image dimensions (which may be rotated/resized)
+        comparisonCanvas.width = compressedImg.width;
+        comparisonCanvas.height = compressedImg.height;
 
         // Initial draw (50/50 split)
         const ctx = comparisonCanvas.getContext('2d');
         const width = comparisonCanvas.width;
         const height = comparisonCanvas.height;
 
+        // Clear canvas
         ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(state.originalImage, 0, 0, width / 2, height, 0, 0, width / 2, height);
-        ctx.drawImage(compressedImg, width / 2, 0, width / 2, height, width / 2, 0, width / 2, height);
+
+        // Draw original on left half
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, width * 0.5, height);
+        ctx.clip();
+        ctx.drawImage(state.originalImage, 0, 0, width, height);
+        ctx.restore();
+
+        // Draw compressed on right half
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(width * 0.5, 0, width * 0.5, height);
+        ctx.clip();
+        ctx.drawImage(compressedImg, 0, 0, width, height);
+        ctx.restore();
 
         // Store blob for download
         state.compressedBlob = blob;
@@ -642,10 +661,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Download button
     document.getElementById('download-btn').addEventListener('click', () => {
-        if (state.compressedBlob) {
+        if (state.compressedBlob && state.originalFile) {
             const format = state.currentSettings.encoder.format;
             const extension = format === 'jpeg' ? 'jpg' : format;
-            const fileName = `compressed.${extension}`;
+
+            // Get original filename without extension
+            const originalName = state.originalFile.name.replace(/\.[^/.]+$/, '');
+
+            // Create new filename: originalname-format.ext
+            const fileName = `${originalName}-${format}.${extension}`;
 
             const url = URL.createObjectURL(state.compressedBlob);
             const a = document.createElement('a');
@@ -786,22 +810,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const batchFolderInput = document.getElementById('batch-folder-input');
 
     document.getElementById('select-files-btn').addEventListener('click', () => {
+        console.log('Select files button clicked');
         batchFileInput.click();
     });
 
     document.getElementById('select-folder-btn').addEventListener('click', () => {
+        console.log('Select folder button clicked');
         batchFolderInput.click();
     });
 
     batchFileInput.addEventListener('change', (e) => {
+        console.log('Batch files selected:', e.target.files.length);
         if (e.target.files.length > 0) {
             handleBatchFilesSelected(e.target.files);
+        } else {
+            showToast('No files selected', 'warning');
         }
     });
 
     batchFolderInput.addEventListener('change', (e) => {
+        console.log('Batch folder selected:', e.target.files.length);
         if (e.target.files.length > 0) {
             handleBatchFilesSelected(e.target.files);
+        } else {
+            showToast('No files selected', 'warning');
         }
     });
 
